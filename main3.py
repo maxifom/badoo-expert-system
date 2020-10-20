@@ -44,4 +44,4 @@ if __name__ == '__main__':
         db.commit()
         took = time.perf_counter() - t
         speed = float(i - skipped) / (time.perf_counter() - start_time)
-        print(f"took {took}s, speed: {speed} per second")
+        print(f"took {took:.2f}s, speed: {speed} per second")
