@@ -3,6 +3,7 @@ import time
 from os import listdir
 
 import cv2
+import dlib
 import face_recognition
 import sqlite3
 
