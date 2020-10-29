@@ -7,8 +7,8 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
-if __name__ == '__main__':
-    # driver = webdriver.RemoteWebDriver(desired_capabilities=DesiredCapabilities.CHROME)
+
+def main():
     while True:
         try:
             driver = webdriver.Chrome(chrome_options=webdriver.ChromeOptions(), executable_path="./chromedriver")
@@ -24,7 +24,6 @@ if __name__ == '__main__':
                 element = WebDriverWait(driver=driver, timeout=600).until(
                     EC.presence_of_element_located((By.CLASS_NAME, 'js-profile-header-name'))
                 )
-                print("Parsing telka: ", driver.find_element_by_class_name("profile-header__user").text)
                 element.click()
                 WebDriverWait(driver=driver, timeout=600).until(
                     EC.presence_of_element_located((By.ID, 'photo_list'))
@@ -37,6 +36,9 @@ if __name__ == '__main__':
                 driver.find_element_by_tag_name("html").send_keys("2")
         except:
             logging.exception("")
-            pass
         finally:
             driver.quit()
+
+
+if __name__ == '__main__':
+    main()

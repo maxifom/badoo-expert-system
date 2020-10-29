@@ -47,7 +47,7 @@ async def update_status(request: Request):
     return json_response({"status": "updated"})
 
 
-if __name__ == '__main__':
+def main():
     app = web.Application()
     db = sqlite3.connect("face_embeddings.sqlite")
     app.update(db=db)
@@ -60,3 +60,8 @@ if __name__ == '__main__':
     ])
 
     web.run_app(app, port=8080)
+
+
+# Разметка
+if __name__ == '__main__':
+    main()

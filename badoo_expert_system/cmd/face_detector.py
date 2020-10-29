@@ -3,24 +3,24 @@ import time
 from os import listdir
 
 import cv2
-import dlib
 import face_recognition
 import sqlite3
 
-if __name__ == '__main__':
-    db = sqlite3.connect("face_embeddings.sqlite")
-    db.execute("""create table if not exists face_embeddings
-(
-	id INTEGER
-		constraint face_embeddings_pk
-			primary key autoincrement,
-	original_filename TEXT,
-	face_embeddings BLOB
-);
 
-""")
+def main():
+    db = sqlite3.connect("../../face_embeddings.sqlite")
+    db.execute("""create table if not exists face_embeddings
+    (
+    	id INTEGER
+    		constraint face_embeddings_pk
+    			primary key autoincrement,
+    	original_filename TEXT,
+    	face_embeddings BLOB
+    );
+
+    """)
     cursor = db.cursor()
-    dir = listdir("imgs")
+    dir = listdir("../../imgs")
     start_time = time.perf_counter()
     skipped = 0
     for i, d in enumerate(dir):
@@ -46,3 +46,7 @@ if __name__ == '__main__':
         took = time.perf_counter() - t
         speed = float(i - skipped) / (time.perf_counter() - start_time)
         print(f"took {took:.2f}s, speed: {speed} per second")
+
+
+if __name__ == '__main__':
+    main()

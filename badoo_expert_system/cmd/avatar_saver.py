@@ -6,7 +6,8 @@ from scrapy import Selector
 import requests
 from yarl import URL
 
-if __name__ == '__main__':
+
+def main():
     dir = os.listdir("html")
     for index_file, file in enumerate(dir):
         print(index_file, len(dir))
@@ -40,3 +41,7 @@ if __name__ == '__main__':
                 with open(filepath, "wb") as f:
                     shutil.copyfileobj(r.raw, f)
                 del r
+
+
+if __name__ == '__main__':
+    main()
