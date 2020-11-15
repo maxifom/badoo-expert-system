@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 import json
 import numpy as np
 from sklearn.svm import LinearSVC
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, classification_report
 
 
 def dict_factory(cursor, row):
@@ -42,6 +42,7 @@ def main():
 
     clf.fit(x_train, y_train)
     acc_svc = accuracy_score(y_test, clf.predict(x_test))
+    print(classification_report(y_test, clf.predict(x_test)))
     print(f"Accuracy: {acc_svc}")
     print(f"Classes: {clf.classes_}")
     filename = "clf.joblib"

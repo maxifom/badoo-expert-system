@@ -44,7 +44,6 @@ async def upload(request: Request):
     perc = {}
     for c, p in zip(clf.classes_.tolist(), percentages[0]):
         perc[str(c)] = str(round(float(p) * 100, 2)) + "%"
-
     return {"image": fname, "prediction": prediction, "percentages": perc}
 
 
