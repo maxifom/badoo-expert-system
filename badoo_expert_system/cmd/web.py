@@ -2,8 +2,8 @@ import os
 import random
 import string
 
+import math
 import numpy as np
-from sklearn.svm import LinearSVC
 import face_recognition
 import aiohttp_jinja2
 import jinja2
@@ -11,6 +11,7 @@ import joblib
 from aiohttp import web
 from aiohttp.web_request import Request
 from aiohttp.web_response import json_response
+from sklearn.calibration import CalibratedClassifierCV
 
 
 def get_random_string(length):
@@ -19,8 +20,9 @@ def get_random_string(length):
     return result_str
 
 
+@aiohttp_jinja2.template("result.jinja2")
 async def upload(request: Request):
-    svc: LinearSVC = request.app["svc"]
+    clf: CalibratedClassifierCV = request.app["clf"]
     data = await request.post()
     input_file = data['file'].file
     filename = data['file'].filename
@@ -37,13 +39,13 @@ async def upload(request: Request):
     if len(face_embeddings_json) == 0:
         return json_response({"message": "No face found"})
     arr = np.array(face_embeddings_json[0], dtype=np.float32).reshape(1, -1)
-    prediction = svc.predict(arr).tolist()[0]
-    percentages = svc.decision_function(arr).tolist()
+    prediction = clf.predict(arr).tolist()[0]
+    percentages = clf.predict_proba(arr).tolist()
     perc = {}
-    for c, p in zip(svc.classes_.tolist(), percentages[0]):
-        perc[str(c)] = float(p)
+    for c, p in zip(clf.classes_.tolist(), percentages[0]):
+        perc[str(c)] = str(round(float(p) * 100, 2)) + "%"
 
-    return json_response({"image": fname, "prediction": prediction, "percentages": perc})
+    return {"image": fname, "prediction": prediction, "percentages": perc}
 
 
 @aiohttp_jinja2.template("index_verification.jinja2")
@@ -53,8 +55,8 @@ async def hello(request):
 
 def main():
     app = web.Application()
-    svc = joblib.load("svc.joblib")
-    app.update(svc=svc)
+    clf = joblib.load("clf.joblib")
+    app.update(clf=clf)
     aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('./templates'))
     app.add_routes([
         web.get("/", hello),

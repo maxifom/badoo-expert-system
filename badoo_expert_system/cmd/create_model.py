@@ -1,6 +1,7 @@
 import sqlite3
 
 import joblib
+from sklearn.calibration import CalibratedClassifierCV
 from sklearn.model_selection import train_test_split
 import json
 import numpy as np
@@ -37,12 +38,14 @@ def main():
     x_train, x_test, y_train, y_test = map(np.array, train_test_split(x, y, test_size=0.25, random_state=42))
 
     svc = LinearSVC()
-    svc.fit(x_train, y_train)
-    acc_svc = accuracy_score(y_test, svc.predict(x_test))
+    clf = CalibratedClassifierCV(svc)
+
+    clf.fit(x_train, y_train)
+    acc_svc = accuracy_score(y_test, clf.predict(x_test))
     print(f"Accuracy: {acc_svc}")
-    print(f"Classes: {svc.classes_}")
-    filename = "svc.joblib"
-    joblib.dump(svc, filename)
+    print(f"Classes: {clf.classes_}")
+    filename = "clf.joblib"
+    joblib.dump(clf, filename)
     print(f"Dumped to file {filename}")
 
 
