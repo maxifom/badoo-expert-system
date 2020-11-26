@@ -1,8 +1,8 @@
 import os
 import random
 import string
+import cv2
 
-import math
 import numpy as np
 import face_recognition
 import aiohttp_jinja2
@@ -38,6 +38,11 @@ async def upload(request: Request):
     face_embeddings_json = [f.tolist() for f in face_embeddings]
     if len(face_embeddings_json) == 0:
         return json_response({"message": "No face found"})
+    face_locations = face_recognition.face_locations(image)
+    for (top, right, bottom, left) in face_locations:
+        cv2.rectangle(image, (left, top), (right, bottom),
+                      (0, 255, 0), 2)
+    cv2.imwrite(filepath, cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
     arr = np.array(face_embeddings_json[0], dtype=np.float32).reshape(1, -1)
     prediction = clf.predict(arr).tolist()[0]
     percentages = clf.predict_proba(arr).tolist()

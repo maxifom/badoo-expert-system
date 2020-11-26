@@ -27,15 +27,16 @@ def main():
         status = r["status"]
         if status is None:
             continue
+        if r["status"] == 0:
+            r.update(status=-1)
         r.update(face_embeddings=fe[0] if len(fe) > 0 else [], status=status)
         new_rows.append(r)
     status_1_rows = [n for n in new_rows if n['status'] == 1]
-    status_0_rows = [n for n in new_rows if n['status'] == 0]
     status_m1_rows = [n for n in new_rows if n['status'] == -1][:len(status_1_rows)]
-    dataset = status_1_rows + status_0_rows + status_m1_rows
+    dataset = status_1_rows + status_m1_rows
     y = [r["status"] for r in dataset]
     x = [r["face_embeddings"] for r in dataset]
-    x_train, x_test, y_train, y_test = map(np.array, train_test_split(x, y, test_size=0.25, random_state=42))
+    x_train, x_test, y_train, y_test = map(np.array, train_test_split(x, y, test_size=0.25, random_state=1))
 
     svc = LinearSVC()
     clf = CalibratedClassifierCV(svc)
