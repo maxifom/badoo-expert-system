@@ -34,7 +34,26 @@
     <div class="row">
         <img class="img-fluid" style="max-width: 400px" src="/static/{{ image }}">
     </div>
+    <div>
+        <form action="/upload_to_db" method="post">
+            <input type="hidden" value="-1" name="status">
+            <input type="hidden" value="{{ id }}" name="image_id">
+            <button onclick="set_true" class="btn btn-primary">Согласен</button>
+            <button onclick="set_false" class="btn btn-primary">Не согласен</button>
+        </form>
+    </div>
 </div>
+<script>
+function set_true(event){
+   document.getElementsByName("status")[0].value = "1"
+}
+function set_false(event){
+   document.getElementsByName("status")[0].value = "-1"
+}
+
+</script>
+
+
 
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"

@@ -1,17 +1,21 @@
+import json
 import os
 import random
+import sqlite3
 import string
-import cv2
 
-import numpy as np
-import face_recognition
 import aiohttp_jinja2
+import cv2
+import face_recognition
 import jinja2
 import joblib
+import numpy as np
 from aiohttp import web
 from aiohttp.web_request import Request
 from aiohttp.web_response import json_response
 from sklearn.calibration import CalibratedClassifierCV
+
+from create_model import create_model, dict_factory
 
 
 def get_random_string(length):
@@ -49,7 +53,16 @@ async def upload(request: Request):
     perc = {}
     for c, p in zip(clf.classes_.tolist(), percentages[0]):
         perc[str(c)] = str(round(float(p) * 100, 2)) + "%"
-    return {"image": fname, "prediction": prediction, "percentages": perc}
+    db = request.app['db']
+    c = db.cursor()
+    face_embeddings_json = json.dumps(face_embeddings_json)
+    c.execute("""INSERT INTO face_embeddings(original_filename, face_embeddings, status) VALUES(?,?,?)""",
+              (fname, face_embeddings_json, prediction))
+    db.commit()
+    id = c.lastrowid
+    print(id)
+    c.close()
+    return {"image": fname, "prediction": prediction, "percentages": perc, 'id': id}
 
 
 @aiohttp_jinja2.template("index_verification.jinja2")
@@ -57,18 +70,40 @@ async def hello(request):
     return {}
 
 
+@aiohttp_jinja2.template("index_verification.jinja2")
+async def upload_to_db(request: Request):
+    data = await request.post()
+    print(data)
+    if data['status'] == '-1':
+        db = request.app['db']
+        c = db.cursor()
+        c.execute("UPDATE face_embeddings SET status = status*-1 WHERE id = ?", (data['image_id'],))
+        db.commit()
+        c.close()
+    filename = "clf.joblib"
+    clf = create_model()
+    request.app.update(clf=clf)
+    joblib.dump(clf, filename)
+    print(f"Dumped to file {filename}")
+    return {}
+
+
 def main():
     app = web.Application()
     clf = joblib.load("clf.joblib")
-    app.update(clf=clf)
+    db = sqlite3.connect("face_embeddings.sqlite")
+    db.row_factory = dict_factory
+    app.update(clf=clf, db=db)
     aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('./templates'))
     app.add_routes([
         web.get("/", hello),
         web.post("/upload", upload),
-        web.static("/static", "verification_imgs")
+        web.static("/static", "verification_imgs"),
+        web.post("/create_model", create_model),
+        web.post('/upload_to_db', upload_to_db)
     ])
 
-    web.run_app(app, port=8080)
+    web.run_app(app, host="127.0.0.1", port=8080)
 
 
 if __name__ == '__main__':

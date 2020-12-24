@@ -1,12 +1,12 @@
+import json
 import sqlite3
 
 import joblib
-from sklearn.calibration import CalibratedClassifierCV
-from sklearn.model_selection import train_test_split
-import json
 import numpy as np
-from sklearn.svm import LinearSVC
+from sklearn.calibration import CalibratedClassifierCV
 from sklearn.metrics import accuracy_score, classification_report
+from sklearn.model_selection import train_test_split
+from sklearn.svm import LinearSVC
 
 
 def dict_factory(cursor, row):
@@ -16,7 +16,7 @@ def dict_factory(cursor, row):
     return d
 
 
-def main():
+def create_model():
     db = sqlite3.connect("face_embeddings.sqlite")
     db.row_factory = dict_factory
     c = db.cursor()
@@ -32,7 +32,7 @@ def main():
         r.update(face_embeddings=fe[0] if len(fe) > 0 else [], status=status)
         new_rows.append(r)
     status_1_rows = [n for n in new_rows if n['status'] == 1]
-    status_m1_rows = [n for n in new_rows if n['status'] == -1][:len(status_1_rows)]
+    status_m1_rows = [n for n in new_rows if n['status'] == -1][-len(status_1_rows):]
     dataset = status_1_rows + status_m1_rows
     y = [r["status"] for r in dataset]
     x = [r["face_embeddings"] for r in dataset]
@@ -40,15 +40,21 @@ def main():
 
     svc = LinearSVC()
     clf = CalibratedClassifierCV(svc)
-
     clf.fit(x_train, y_train)
     acc_svc = accuracy_score(y_test, clf.predict(x_test))
     print(classification_report(y_test, clf.predict(x_test)))
     print(f"Accuracy: {acc_svc}")
     print(f"Classes: {clf.classes_}")
+    db.close()
+    return clf
+
+
+def main():
     filename = "clf.joblib"
+    clf = create_model()
     joblib.dump(clf, filename)
     print(f"Dumped to file {filename}")
+
 
 
 if __name__ == '__main__':
