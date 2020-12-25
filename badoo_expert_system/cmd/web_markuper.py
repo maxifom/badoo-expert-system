@@ -2,9 +2,12 @@ import sqlite3
 
 import aiohttp_jinja2
 import jinja2
+import joblib
 from aiohttp import web
 from aiohttp.web_request import Request
 from aiohttp.web_response import json_response
+
+from badoo_expert_system.cmd.create_model import create_model
 
 
 @aiohttp_jinja2.template("index.jinja2")
@@ -47,6 +50,16 @@ async def update_status(request: Request):
     return json_response({"status": "updated"})
 
 
+@aiohttp_jinja2.template("index.jinja2")
+async def update_model(request: Request):
+    filename = "clf.joblib"
+    clf = create_model()
+    request.app.update(clf=clf)
+    joblib.dump(clf, filename)
+    print(f"Dumped to file {filename}")
+    return {}
+
+
 def main():
     app = web.Application()
     db = sqlite3.connect("face_embeddings.sqlite")
@@ -56,10 +69,11 @@ def main():
         web.get("/", hello),
         web.get("/get_image", get_image),
         web.post("/update_status", update_status),
+        web.post("/create_model", update_model),
         web.static("/static", "imgs_with_faces")
     ])
 
-    web.run_app(app, port=8080)
+    web.run_app(app, host='127.0.0.1', port=8081)
 
 
 # Разметка
