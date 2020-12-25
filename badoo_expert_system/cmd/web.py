@@ -73,7 +73,6 @@ async def hello(request):
 @aiohttp_jinja2.template("index_verification.jinja2")
 async def upload_to_db(request: Request):
     data = await request.post()
-    print(data)
     if data['status'] == '-1':
         db = request.app['db']
         c = db.cursor()
@@ -88,6 +87,7 @@ async def upload_to_db(request: Request):
     return {}
 
 
+
 def main():
     app = web.Application()
     clf = joblib.load("clf.joblib")
@@ -99,7 +99,6 @@ def main():
         web.get("/", hello),
         web.post("/upload", upload),
         web.static("/static", "verification_imgs"),
-        web.post("/create_model", create_model),
         web.post('/upload_to_db', upload_to_db)
     ])
 
